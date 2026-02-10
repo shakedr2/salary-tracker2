@@ -3,528 +3,745 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>מחשבון שכר Pro + AI</title>
+    <title>×ž×—×©×‘×•×Ÿ ×©×›×¨ Pro 8.0</title>
     
     <!-- PWA Settings -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#4f46e5">
 
+    <!-- Libraries -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    
-    <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;700;900&display=swap" rel="stylesheet">
-    <!-- Marked for Markdown -->
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
 
     <style>
+        :root {
+            --primary: #4f46e5;
+            --bg-grad: linear-gradient(135deg, #f8fafc 0%, #eef2ff 100%);
+        }
+
         body { 
             font-family: 'Heebo', sans-serif; 
             -webkit-tap-highlight-color: transparent;
-            background-color: #f8fafc;
+            background: var(--bg-grad);
+            min-height: 100vh;
+            color: #1e293b;
         }
 
-        /* Custom Scrollbar */
-        ::-webkit-scrollbar { width: 6px; height: 6px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
-        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
-
-        /* Smooth Transitions */
-        .transition-all-300 { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
-
-        /* Custom Range Slider */
-        input[type=range] {
-            -webkit-appearance: none;
-            width: 100%;
-            background: transparent;
-        }
-        input[type=range]::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            height: 24px;
-            width: 24px;
-            border-radius: 50%;
-            background: #ffffff;
-            border: 2px solid #4f46e5;
-            box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.3);
-            cursor: pointer;
-            margin-top: -10px;
-            transition: transform 0.1s;
-        }
-        input[type=range]::-webkit-slider-thumb:active { transform: scale(1.1); }
-        input[type=range]::-webkit-slider-runnable-track {
-            width: 100%;
-            height: 6px;
-            cursor: pointer;
-            background: #e2e8f0;
-            border-radius: 999px;
-        }
-        
-        /* Tab Animations */
-        .tab-content { display: none; opacity: 0; transform: translateY(10px); transition: opacity 0.3s ease, transform 0.3s ease; }
-        .tab-content.active { display: block; opacity: 1; transform: translateY(0); }
-
-        /* Glassmorphism Card */
-        .glass-card {
+        /* Utils */
+        .glass {
             background: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            box-shadow: 0 10px 40px -10px rgba(0,0,0,0.05);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        }
+        
+        .fade-in { animation: fadeIn 0.3s ease-out forwards; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
+        .input-ghost {
+            background: transparent; border: none; outline: none;
+            width: 100%; font-weight: 800; color: #1e293b;
+        }
+        
+        /* Custom Checkbox */
+        .toggle-checkbox:checked { right: 0; border-color: #10b981; }
+        .toggle-checkbox:checked + .toggle-label { background-color: #10b981; }
+        
+        /* Sliders */
+        input[type=range] { -webkit-appearance: none; width: 100%; background: transparent; }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none; height: 18px; width: 18px;
+            border-radius: 50%; background: #4f46e5;
+            cursor: pointer; margin-top: -7px;
+            box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1);
+        }
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%; height: 4px; cursor: pointer;
+            background: #e2e8f0; border-radius: 2px;
         }
 
-        /* Receipt Style */
-        .receipt-edge {
-            background-image: radial-gradient(circle at 10px -5px, transparent 12px, white 13px);
-            background-size: 20px 20px;
-            background-repeat: repeat-x;
-            height: 20px;
-            width: 100%;
-            transform: rotate(180deg);
-        }
-
-        /* AI Chat Bubble */
-        .ai-message {
-            background-color: #f0fdf4;
-            border: 1px solid #dcfce7;
-            border-radius: 12px;
-            padding: 12px;
-            margin-bottom: 8px;
-            font-size: 0.9rem;
-            color: #166534;
-            line-height: 1.5;
-        }
-        .ai-message p { margin-bottom: 0.5rem; }
-        .ai-message ul { list-style-type: disc; padding-right: 1.5rem; margin-bottom: 0.5rem; }
-        .ai-message strong { font-weight: 700; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
         
-        .user-message {
-            background-color: #eff6ff;
-            border: 1px solid #dbeafe;
-            border-radius: 12px;
-            padding: 12px;
-            margin-bottom: 8px;
-            font-size: 0.9rem;
-            color: #1e40af;
-            text-align: right;
-        }
-        .ai-loading {
-            display: inline-flex;
-            gap: 4px;
-        }
-        .ai-loading span {
-            width: 6px;
-            height: 6px;
-            background-color: #4f46e5;
-            border-radius: 50%;
-            animation: bounce 1.4s infinite ease-in-out both;
-        }
-        .ai-loading span:nth-child(1) { animation-delay: -0.32s; }
-        .ai-loading span:nth-child(2) { animation-delay: -0.16s; }
-        @keyframes bounce { 0%, 80%, 100% { transform: scale(0); } 40% { transform: scale(1); } }
-        
-        /* Sparkle Animation for AI Button */
-        @keyframes sparkle {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
-        }
-        .btn-sparkle {
-            background: linear-gradient(270deg, #4f46e5, #7c3aed, #2563eb);
-            background-size: 200% 200%;
-            animation: sparkle 4s ease infinite;
+        /* Chat Bubbles */
+        .chat-chip {
+            @apply text-[10px] bg-indigo-50 text-indigo-700 px-3 py-1.5 rounded-full border border-indigo-100 cursor-pointer hover:bg-indigo-100 transition-colors whitespace-nowrap;
         }
     </style>
 </head>
-<body class="text-slate-800 min-h-screen pb-24 md:pb-10 bg-slate-50">
+<body class="pb-24">
 
-    <!-- Mobile Header / Top Bar -->
-    <header class="bg-white/80 backdrop-blur-md border-b border-slate-200 sticky top-0 z-50">
-        <div class="max-w-2xl mx-auto px-4 py-3 flex justify-between items-center">
+    <!-- Header -->
+    <header class="sticky top-0 z-50 glass border-b border-indigo-100">
+        <div class="max-w-md mx-auto px-4 py-3 flex justify-between items-center">
             <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold shadow-lg shadow-indigo-200">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
-                    </svg>
+                <div class="w-10 h-10 rounded-xl bg-indigo-600 text-white flex items-center justify-center shadow-lg shadow-indigo-200">
+                    <i class="ph-bold ph-calculator text-xl"></i>
                 </div>
                 <div>
-                    <h1 class="font-bold text-lg leading-tight text-slate-800">מחשבון שכר</h1>
-                    <p class="text-xs text-slate-500 font-medium">גרסה 3.1 • AI Pro</p>
+                    <h1 class="font-bold text-lg leading-none text-slate-800">×ž×—×©×‘×•×Ÿ ×©×›×¨</h1>
+                    <p class="text-[10px] text-indigo-500 font-bold uppercase tracking-wider mt-0.5">PRO 8.0</p>
                 </div>
             </div>
-            
-            <div class="text-right">
-                <div class="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">ברוטו משוער</div>
-                <div class="text-xl font-black text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-purple-600" id="totalGrossHeader">0 ₪</div>
+            <div class="text-left">
+                <div class="text-[10px] text-slate-400 font-bold uppercase">× ×˜×• ×ž×©×•×¢×¨</div>
+                <div class="text-xl font-black text-emerald-600 tabular-nums leading-none" id="headerNet">0 â‚ª</div>
             </div>
         </div>
     </header>
 
-    <main class="max-w-2xl mx-auto px-4 py-6 space-y-6">
+    <main class="max-w-md mx-auto px-4 py-6 space-y-6">
 
         <!-- Navigation Tabs -->
-        <nav class="bg-slate-200/50 p-1 rounded-2xl flex relative isolate overflow-x-auto no-scrollbar">
-            <button onclick="switchTab('report')" id="btn-report" class="flex-1 min-w-[80px] py-2.5 text-sm font-bold rounded-xl text-center transition-all-300 text-slate-500 hover:text-indigo-600 relative z-10 bg-white shadow-sm text-indigo-600">
-                דוח שעות
+        <div class="bg-white p-1 rounded-2xl shadow-sm border border-slate-100 flex relative overflow-x-auto no-scrollbar">
+            <button onclick="setTab('dynamic')" id="btn-dynamic" class="flex-1 min-w-[80px] py-2 text-sm font-bold rounded-xl transition-all text-indigo-600 bg-indigo-50 shadow-sm">
+                ×¡×™×ž×•×œ×˜×•×¨
             </button>
-            <button onclick="switchTab('simulation')" id="btn-simulation" class="flex-1 min-w-[80px] py-2.5 text-sm font-bold rounded-xl text-center transition-all-300 text-slate-500 hover:text-indigo-600 relative z-10">
-                סימולטור
+            <button onclick="setTab('report')" id="btn-report" class="flex-1 min-w-[80px] py-2 text-sm font-bold rounded-xl transition-all text-slate-500 hover:text-indigo-600">
+                ×“×•×— ×©×¢×•×ª
             </button>
-            <button onclick="switchTab('results')" id="btn-results" class="flex-1 min-w-[80px] py-2.5 text-sm font-bold rounded-xl text-center transition-all-300 text-slate-500 hover:text-green-600 relative z-10">
-                תלוש
+            <button onclick="setTab('quick')" id="btn-quick" class="flex-1 min-w-[80px] py-2 text-sm font-bold rounded-xl transition-all text-slate-500 hover:text-indigo-600">
+                ×ž×”×™×¨
             </button>
-            <button onclick="switchTab('ai')" id="btn-ai" class="flex-1 min-w-[80px] py-2.5 text-sm font-bold rounded-xl text-center transition-all-300 text-slate-500 hover:text-purple-600 relative z-10 flex items-center justify-center gap-1">
-                <span>✨</span> יועץ AI
-            </button>
-        </nav>
+        </div>
 
-        <!-- TAB: REPORT -->
-        <section id="tab-report" class="tab-content active space-y-4">
-            <div id="dropZone" class="group relative overflow-hidden rounded-3xl border-2 border-dashed border-indigo-200 bg-indigo-50/50 p-8 text-center transition-all hover:border-indigo-400 hover:bg-indigo-50">
-                <input type="file" id="fileInput" accept=".csv, .xlsx, .xls" class="absolute inset-0 w-full h-full cursor-pointer opacity-0 z-20">
-                <div class="relative z-10 transition-transform duration-300 group-hover:-translate-y-2">
-                    <div class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-indigo-100 text-indigo-600 shadow-inner">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" /></svg>
-                    </div>
-                    <h3 class="mb-1 text-lg font-bold text-slate-700">טעינת קובץ אקסל</h3>
-                    <p class="text-sm text-slate-400">לחץ לבחירה או גרור לכאן</p>
-                </div>
-                <div id="loadingIndicator" class="absolute inset-0 flex items-center justify-center bg-white/90 backdrop-blur-sm opacity-0 transition-opacity pointer-events-none z-30">
-                    <div class="flex flex-col items-center gap-2"><div class="h-8 w-8 animate-spin rounded-full border-4 border-indigo-500 border-t-transparent"></div><span class="text-sm font-bold text-indigo-600">מעבד...</span></div>
-                </div>
-                <div id="fileSuccessMsg" class="absolute inset-0 flex items-center justify-center bg-emerald-50/95 backdrop-blur-sm opacity-0 transition-opacity pointer-events-none z-30">
-                    <div class="flex flex-col items-center gap-2 text-emerald-600"><svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg><span class="font-bold">נקלט בהצלחה!</span></div>
-                </div>
-            </div>
-
-            <div class="grid grid-cols-2 gap-3">
-                <div class="glass-card p-4 rounded-2xl"><label class="block text-xs font-bold text-slate-400 mb-1 uppercase">100% שעות</label><input type="number" id="rep100" class="w-full bg-transparent text-2xl font-black text-slate-700 focus:outline-none" placeholder="0" value="31.00" step="0.01"></div>
-                <div class="glass-card p-4 rounded-2xl"><label class="block text-xs font-bold text-slate-400 mb-1 uppercase">125% שעות</label><input type="number" id="rep125" class="w-full bg-transparent text-2xl font-black text-indigo-600 focus:outline-none" placeholder="0" value="8.00" step="0.01"></div>
-                <div class="glass-card p-4 rounded-2xl"><label class="block text-xs font-bold text-slate-400 mb-1 uppercase">150% שעות</label><input type="number" id="rep150" class="w-full bg-transparent text-2xl font-black text-purple-600 focus:outline-none" placeholder="0" value="14.77" step="0.01"></div>
-                <div class="glass-card p-4 rounded-2xl border-l-4 border-l-orange-400"><label class="block text-xs font-bold text-orange-600 mb-1 uppercase">שעות שבת</label><input type="number" id="repSat" class="w-full bg-transparent text-2xl font-black text-orange-600 focus:outline-none" placeholder="0" value="21.55" step="0.01"></div>
-            </div>
+        <!-- VIEW 1: DYNAMIC SIMULATOR (Default) -->
+        <div id="view-dynamic" class="fade-in space-y-5">
             
-            <div class="glass-card p-4 rounded-2xl flex items-center justify-between">
-                <div><label class="block text-xs font-bold text-slate-400 uppercase">החזרי נסיעות</label></div>
-                <div class="flex items-center gap-1"><span class="text-slate-400 font-light text-lg">₪</span><input type="number" id="repTravel" class="w-24 text-right bg-transparent text-2xl font-black text-slate-700 focus:outline-none" value="113.00"></div>
-            </div>
-            <button onclick="clearReport()" class="w-full py-3 text-xs font-bold text-slate-400 hover:text-red-500 transition-colors">איפוס נתונים</button>
-        </section>
+            <!-- Builder Card -->
+            <div class="bg-white p-5 rounded-3xl border border-indigo-100 shadow-lg relative overflow-hidden">
+                <div class="absolute top-0 right-0 w-32 h-32 bg-indigo-50 rounded-full -mr-10 -mt-10 opacity-50 pointer-events-none"></div>
+                
+                <h3 class="text-sm font-bold text-indigo-900 mb-4 flex items-center gap-2 relative z-10">
+                    <i class="ph-duotone ph-list-plus text-lg"></i> ×‘×•× ×” ×ž×©×ž×¨×•×ª
+                </h3>
 
-        <!-- TAB: SIMULATION -->
-        <section id="tab-simulation" class="tab-content space-y-5">
-            <div class="bg-white rounded-3xl shadow-sm border border-slate-100 p-5">
-                <div class="flex items-center gap-3 mb-6"><div class="h-10 w-10 rounded-full bg-blue-50 flex items-center justify-center text-blue-600 text-lg">📅</div><div><h3 class="font-bold text-slate-800">אמצע שבוע</h3></div></div>
-                <div class="space-y-6">
-                    <div><div class="flex justify-between mb-2"><span class="text-xs font-bold text-slate-500">אורך משמרת</span><span class="text-xs font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-md" id="dispWkHours">16.0</span></div><input type="range" id="wkHours" min="8" max="24" step="0.5" value="16"></div>
-                    <div><div class="flex justify-between mb-2"><span class="text-xs font-bold text-slate-500">כמות</span><span class="text-xs font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-md" id="dispWkCount">6</span></div><input type="range" id="wkCount" min="0" max="25" step="1" value="6"></div>
+                <!-- Add/Edit Form -->
+                <div class="flex gap-2 mb-4 relative z-10">
+                    <select id="shiftType" class="bg-slate-50 border border-slate-200 text-xs rounded-xl px-3 py-3 flex-1 focus:outline-none focus:border-indigo-500 font-medium">
+                        <option value="wk">×™×•× ×—×•×œ (×¨×’×™×œ)</option>
+                        <option value="shabbat">×©×‘×ª / ×©×™×©×™ ×¢×¨×‘</option>
+                    </select>
+                    <input type="number" id="shiftHours" placeholder="×©×¢×•×ª" class="w-20 bg-slate-50 border border-slate-200 text-xs rounded-xl px-2 py-3 text-center focus:outline-none focus:border-indigo-500 font-bold">
+                    <button id="btnAddShift" onclick="addOrUpdateShift()" class="bg-indigo-600 text-white rounded-xl px-4 shadow-md hover:bg-indigo-700 transition-transform active:scale-95 flex items-center justify-center">
+                        <i class="ph-bold ph-plus text-lg" id="btnIcon"></i>
+                    </button>
                 </div>
-            </div>
-            <div class="bg-white rounded-3xl shadow-sm border border-slate-100 p-5">
-                <div class="flex items-center gap-3 mb-6"><div class="h-10 w-10 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-600 text-lg">🌤️</div><div><h3 class="font-bold text-slate-800">יום שישי</h3></div></div>
-                <div class="space-y-6">
-                    <div><div class="flex justify-between mb-2"><span class="text-xs font-bold text-slate-500">אורך משמרת</span><span class="text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-md" id="dispFriHours">12.0</span></div><input type="range" id="friHours" min="6" max="20" step="0.5" value="12" class="accent-emerald-600"></div>
-                    <div><div class="flex justify-between mb-2"><span class="text-xs font-bold text-slate-500">כמות</span><span class="text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-md" id="dispFriCount">4</span></div><input type="range" id="friCount" min="0" max="5" step="1" value="4"></div>
-                </div>
-            </div>
-            <div class="bg-white rounded-3xl shadow-sm border border-slate-100 p-5">
-                <div class="flex items-center gap-3 mb-6"><div class="h-10 w-10 rounded-full bg-purple-50 flex items-center justify-center text-purple-600 text-lg">🕍</div><div><h3 class="font-bold text-slate-800">שבת</h3></div></div>
-                <div class="space-y-6">
-                    <div><div class="flex justify-between mb-2"><span class="text-xs font-bold text-slate-500">אורך משמרת</span><span class="text-xs font-bold text-purple-600 bg-purple-50 px-2 py-0.5 rounded-md" id="dispSatHours">16.0</span></div><input type="range" id="satHours" min="8" max="24" step="0.5" value="16"></div>
-                    <div><div class="flex justify-between mb-2"><span class="text-xs font-bold text-slate-500">כמות</span><span class="text-xs font-bold text-purple-600 bg-purple-50 px-2 py-0.5 rounded-md" id="dispSatCount">4</span></div><input type="range" id="satCount" min="0" max="5" step="1" value="4"></div>
-                </div>
-            </div>
-        </section>
 
-        <!-- TAB: RESULTS -->
-        <section id="tab-results" class="tab-content space-y-6">
-            <div class="relative bg-white shadow-xl rounded-t-2xl overflow-hidden mx-2 mt-4">
-                <div class="bg-slate-800 p-6 text-center text-white">
-                    <div class="text-sm opacity-50 uppercase tracking-widest font-bold mb-1">תלוש שכר משוער</div>
-                    <div class="text-4xl font-black tracking-tight" id="slipTotalNet">0 ₪</div>
-                    <div class="text-xs text-emerald-400 font-bold mt-2 bg-emerald-400/10 inline-block px-3 py-1 rounded-full border border-emerald-400/20">נטו לתשלום (יישוב מזכה)</div>
+                <!-- List -->
+                <div id="shiftList" class="space-y-2 max-h-48 overflow-y-auto pr-1 no-scrollbar mb-2 relative z-10">
+                    <!-- Items injected here -->
                 </div>
-                <div class="p-6 space-y-4">
-                    <div class="flex justify-between items-center pb-4 border-b border-dashed border-slate-200">
-                        <span class="text-slate-500 font-medium">שכר ברוטו</span>
-                        <span class="text-slate-800 font-black text-lg" id="tdGrossStd">0 ₪</span>
-                    </div>
-                    <div class="space-y-3 pt-2">
-                        <div class="flex justify-between items-center text-sm"><div class="flex items-center gap-2"><span class="w-1.5 h-1.5 rounded-full bg-red-400"></span><span class="text-slate-500">ביטוח לאומי</span></div><span class="font-mono font-medium text-slate-700" id="tdBLStd">0 ₪</span></div>
-                        <div class="flex justify-between items-center text-sm"><div class="flex items-center gap-2"><span class="w-1.5 h-1.5 rounded-full bg-orange-400"></span><span class="text-slate-500">פנסיה (7%)</span></div><span class="font-mono font-medium text-slate-700" id="tdPensionStd">0 ₪</span></div>
-                        <div class="flex justify-between items-center text-sm"><div class="flex items-center gap-2"><span class="w-1.5 h-1.5 rounded-full bg-orange-400"></span><span class="text-slate-500">קה"ש (2.5%)</span></div><span class="font-mono font-medium text-slate-700" id="tdHishtalmutStd">0 ₪</span></div>
-                        <div class="flex justify-between items-center text-sm"><div class="flex items-center gap-2"><span class="w-1.5 h-1.5 rounded-full bg-indigo-400"></span><span class="text-slate-500">מס הכנסה (רגיל)</span></div><span class="font-mono font-bold text-red-500" id="tdTaxStd">0 ₪</span></div>
-                    </div>
-                    <div class="bg-slate-50 rounded-xl p-4 mt-4 border border-slate-100">
-                        <div class="flex justify-between items-center mb-1"><span class="text-xs font-bold text-slate-400 uppercase">נטו רגיל (מרכז)</span><span class="font-bold text-slate-600" id="tdNetStd">0 ₪</span></div>
-                        <div class="w-full h-1.5 bg-slate-200 rounded-full overflow-hidden"><div class="h-full bg-slate-400 w-[80%] rounded-full"></div></div>
-                    </div>
-                    <div class="bg-gradient-to-r from-emerald-50 to-teal-50 rounded-xl p-4 border border-emerald-100 relative overflow-hidden">
-                        <div class="absolute -right-4 -top-4 bg-emerald-500 text-white text-[9px] px-6 py-1 rotate-45 font-bold shadow-sm">מומלץ</div>
-                        <div class="flex justify-between items-center mb-1"><span class="text-xs font-bold text-emerald-600 uppercase">נטו יישוב מזכה</span><span class="font-black text-emerald-700 text-lg" id="tdNetStl">0 ₪</span></div>
-                        <div class="w-full h-1.5 bg-emerald-200 rounded-full overflow-hidden"><div class="h-full bg-emerald-500 w-full rounded-full animate-pulse"></div></div>
-                        <div class="mt-2 text-xs text-emerald-600 font-bold flex items-center gap-1"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M12 7a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0V8.414l-4.293 4.293a1 1 0 01-1.414 0L8 10.414l-4.293 4.293a1 1 0 01-1.414-1.414l5-5a1 1 0 011.414 0L11 10.586 14.586 7H12z" clip-rule="evenodd" /></svg>תוספת של <span id="diffValue">0 ₪</span> לכיס</div>
+                <div id="emptyState" class="text-center py-4 text-xs text-slate-400 border-2 border-dashed border-slate-100 rounded-xl">
+                    ×œ× ×”×•×–× ×• ×ž×©×ž×¨×•×ª
+                </div>
+                
+                <div class="flex justify-between items-center mt-2 pt-2 border-t border-slate-100">
+                    <span class="text-[10px] text-slate-400 font-bold" id="shiftCountLabel">0 ×ž×©×ž×¨×•×ª</span>
+                    <button onclick="clearShifts()" class="text-[10px] text-red-400 hover:text-red-600 font-bold">× ×™×§×•×™ ×”×›×œ</button>
+                </div>
+            </div>
+
+            <!-- Smart Local AI Chat -->
+            <div class="bg-gradient-to-b from-white to-indigo-50 rounded-3xl border border-indigo-100 p-4 shadow-sm">
+                <div class="flex items-center gap-2 mb-3">
+                    <div class="w-6 h-6 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center"><i class="ph-fill ph-robot"></i></div>
+                    <span class="text-xs font-bold text-indigo-900">× ×™×ª×•×— × ×ª×•× ×™× ×—×›×</span>
+                </div>
+                
+                <div id="embeddedChatLog" class="h-32 overflow-y-auto space-y-2 mb-3 text-xs bg-white/60 p-3 rounded-xl border border-indigo-50 scroll-smooth">
+                    <div class="bg-indigo-100 p-2 rounded-lg text-indigo-800 w-fit rounded-tr-none">
+                        ×”×™×™! ×× ×™ ×™×•×“×¢ ×œ× ×ª×— ××ª ×”×ž×©×ž×¨×•×ª ×©×œ×š. ×œ×—×¥ ×œ×ž×˜×” ×œ×©××œ×” ×ž×”×™×¨×” ðŸ‘‡
                     </div>
                 </div>
-                <div class="receipt-edge"></div>
-            </div>
-        </section>
 
-        <!-- TAB: AI ADVISOR -->
-        <section id="tab-ai" class="tab-content space-y-6">
-            
-            <!-- API Key Setup (Shown if key is missing) -->
-            <div id="apiKeySection" class="glass-card p-5 rounded-2xl border-l-4 border-yellow-400">
-                <h3 class="font-bold text-slate-800 text-sm mb-2">🔑 הגדרת מפתח AI</h3>
-                <p class="text-xs text-slate-500 mb-3">כדי שהיועץ יעבוד באתר חיצוני (כמו Tiiny), עליך להזין מפתח Gemini API (זה בחינם מגוגל).</p>
-                <div class="flex gap-2">
-                    <input type="password" id="userApiKeyInput" placeholder="הדבק את המפתח כאן (AI Studio Key)" class="flex-1 bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-indigo-500">
-                    <button onclick="saveApiKey()" class="bg-slate-800 text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-slate-700">שמור</button>
+                <!-- Quick Questions Chips -->
+                <div class="flex gap-2 overflow-x-auto no-scrollbar mb-3 pb-1">
+                    <button onclick="askLocal('×©×‘×ª×•×ª')" class="chat-chip">×›×ž×” ×©×‘×ª×•×ª?</button>
+                    <button onclick="askLocal('×©×™×©×™')" class="chat-chip">×›×ž×” ×™×ž×™ ×©×™×©×™?</button>
+                    <button onclick="askLocal('16')" class="chat-chip">×ž×¢×œ 16 ×©×¢×•×ª?</button>
+                    <button onclick="askLocal('×œ×™×œ×•×ª')" class="chat-chip">×›×ž×” ×œ×™×œ×•×ª?</button>
+                    <button onclick="askLocal('×ž×ž×•×¦×¢')" class="chat-chip">×ž×ž×•×¦×¢ ×œ×©×¢×”?</button>
                 </div>
-                <p id="keyStatusMsg" class="text-[10px] mt-2 text-green-600 hidden">✓ המפתח נשמר בדפדפן בהצלחה!</p>
-            </div>
 
-            <div class="bg-gradient-to-br from-indigo-600 to-purple-700 rounded-3xl p-6 text-white shadow-xl relative overflow-hidden">
-                <div class="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-10 -mt-10 blur-2xl"></div>
-                <h2 class="text-2xl font-bold mb-2 flex items-center gap-2"><span>✨</span> יועץ שכר חכם</h2>
-                <p class="text-indigo-100 text-sm mb-6">ה-AI ינתח את נתוני המשמרות שלך ויספק תובנות פיננסיות.</p>
-                <button onclick="generateSalaryAnalysis()" class="w-full bg-white text-indigo-700 font-bold py-3 rounded-xl shadow-lg hover:bg-indigo-50 transition-all flex items-center justify-center gap-2 btn-sparkle text-white">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
-                    נתח את השכר שלי
-                </button>
-            </div>
-
-            <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-4 min-h-[300px] flex flex-col">
-                <div class="flex items-center gap-2 border-b pb-3 mb-3"><div class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div><span class="text-xs font-bold text-slate-500 uppercase">צ'אט חי</span></div>
-                <div id="aiChatArea" class="flex-1 overflow-y-auto max-h-[400px] mb-4 space-y-2 p-2 text-sm">
-                    <div class="ai-message">שלום! אני יועץ השכר שלך. לחץ על הכפתור למעלה לניתוח או שאל אותי שאלה.</div>
-                </div>
                 <div class="relative">
-                    <input type="text" id="aiUserInput" placeholder="שאל משהו..." class="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 pr-4 pl-12 text-sm focus:outline-none focus:border-indigo-500" onkeypress="if(event.key === 'Enter') askGemini()">
-                    <button onclick="askGemini()" class="absolute left-2 top-1/2 -translate-y-1/2 p-1.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" /></svg></button>
+                    <input type="text" id="embeddedAiInput" class="w-full bg-white border border-indigo-200 rounded-xl py-2 px-3 text-xs focus:outline-none focus:border-indigo-500" placeholder="×”×§×œ×“ ×©××œ×” ×—×•×¤×©×™×ª..." onkeypress="if(event.key==='Enter') sendEmbeddedAI()">
+                    <button onclick="sendEmbeddedAI()" class="absolute left-1 top-1 p-1.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">
+                        <i class="ph-bold ph-paper-plane-right"></i>
+                    </button>
                 </div>
             </div>
-        </section>
+        </div>
+
+        <!-- VIEW 2: REPORT (Excel + Manual Totals) -->
+        <div id="view-report" class="fade-in hidden space-y-5">
+            <!-- Excel -->
+            <div class="relative group cursor-pointer overflow-hidden rounded-2xl border-2 border-dashed border-indigo-200 bg-indigo-50/50 hover:bg-indigo-50 transition-colors p-6 text-center">
+                <input type="file" id="fileInput" accept=".csv, .xlsx, .xls" class="absolute inset-0 w-full h-full opacity-0 z-20 cursor-pointer">
+                <div class="relative z-10 pointer-events-none">
+                    <i class="ph-duotone ph-file-xls text-3xl text-indigo-500 mb-2"></i>
+                    <h3 class="font-bold text-slate-700 text-sm">×˜×¢×™× ×ª ×§×•×‘×¥ ××§×¡×œ</h3>
+                    <p class="text-[10px] text-slate-400">×ª×•×ž×š xlsx/csv</p>
+                </div>
+                <div id="loader" class="absolute inset-0 bg-white/90 flex items-center justify-center opacity-0 pointer-events-none transition-opacity z-30">
+                    <i class="ph-bold ph-spinner animate-spin text-indigo-600 text-2xl"></i>
+                </div>
+            </div>
+            
+            <div id="excelError" class="hidden bg-red-50 text-red-500 p-3 rounded-xl text-xs border border-red-100 text-center">
+                ×©×’×™××” ×‘×˜×¢×™× ×ª ×”×§×•×‘×¥. ×× × ×•×•×“× ×©×”×¤×•×¨×ž×˜ ×ª×§×™×Ÿ.
+            </div>
+
+            <!-- Aggregated Inputs -->
+            <div class="space-y-3">
+                <div class="flex items-center justify-between px-1">
+                    <h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest">×¡×™×›×•× ×©×¢×•×ª ×ž×—×•×©×‘</h3>
+                    <button onclick="clearInputs()" class="text-[10px] font-bold text-slate-400 hover:text-slate-600">××™×¤×•×¡</button>
+                </div>
+                
+                <!-- 100% -->
+                <div class="bg-white p-3 rounded-2xl border border-slate-100 shadow-sm flex items-center gap-4">
+                    <div class="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center font-bold text-slate-500 text-xs">100%</div>
+                    <div class="flex-1"><input type="range" min="0" max="250" step="1" oninput="syncInput(this, 'inp100')"></div>
+                    <div class="w-20"><input type="number" id="inp100" class="input-ghost text-right text-xl" placeholder="0" oninput="calc()"></div>
+                </div>
+                <!-- 125% -->
+                <div class="bg-white p-3 rounded-2xl border border-slate-100 shadow-sm flex items-center gap-4">
+                    <div class="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center font-bold text-indigo-600 text-xs">125%</div>
+                    <div class="flex-1"><input type="range" min="0" max="100" step="1" oninput="syncInput(this, 'inp125')"></div>
+                    <div class="w-20"><input type="number" id="inp125" class="input-ghost text-right text-xl text-indigo-600" placeholder="0" oninput="calc()"></div>
+                </div>
+                <!-- 150% -->
+                <div class="bg-white p-3 rounded-2xl border border-slate-100 shadow-sm flex items-center gap-4">
+                    <div class="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center font-bold text-purple-600 text-xs">150%</div>
+                    <div class="flex-1"><input type="range" min="0" max="100" step="1" oninput="syncInput(this, 'inp150')"></div>
+                    <div class="w-20"><input type="number" id="inp150" class="input-ghost text-right text-xl text-purple-600" placeholder="0" oninput="calc()"></div>
+                </div>
+                <!-- Weekend Logic -->
+                <div class="grid grid-cols-2 gap-3">
+                     <div class="bg-orange-50 p-3 rounded-2xl border border-orange-100 flex flex-col">
+                        <label class="text-[10px] font-bold text-orange-600 mb-1">×©×‘×ª (175%)</label>
+                        <input type="number" id="inp175" class="input-ghost text-2xl text-orange-600" placeholder="0" oninput="calc()">
+                     </div>
+                     <div class="bg-rose-50 p-3 rounded-2xl border border-rose-100 flex flex-col">
+                        <label class="text-[10px] font-bold text-rose-600 mb-1">×©×‘×ª (200%)</label>
+                        <input type="number" id="inp200" class="input-ghost text-2xl text-rose-600" placeholder="0" oninput="calc()">
+                     </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- VIEW 3: QUICK -->
+        <div id="view-quick" class="fade-in hidden space-y-6">
+            <div class="bg-gradient-to-br from-indigo-600 to-purple-700 p-8 rounded-3xl text-white shadow-xl text-center">
+                <label class="text-indigo-100 text-xs font-bold uppercase tracking-widest mb-2 block">×”×›× ×¡ ×‘×¨×•×˜×• ×ž×©×•×¢×¨</label>
+                <div class="relative flex items-center justify-center">
+                    <input type="tel" id="quickGross" value="22000" class="bg-transparent border-b-2 border-white/20 text-center text-5xl font-black w-full focus:outline-none focus:border-white transition-colors" oninput="calcQuick()">
+                    <span class="absolute -right-2 bottom-4 text-xl opacity-50">â‚ª</span>
+                </div>
+                <input type="range" min="5000" max="50000" step="500" class="w-full mt-6 accent-white opacity-80 hover:opacity-100" oninput="document.getElementById('quickGross').value = this.value; calcQuick()">
+            </div>
+        </div>
+
+        <!-- SHARED SETTINGS -->
+        <div class="bg-white p-4 rounded-2xl border border-slate-100 grid grid-cols-3 gap-3">
+            <div>
+                <label class="text-[10px] font-bold text-slate-400">× ×¡×™×¢×•×ª</label>
+                <input type="number" id="inpTravel" class="input-ghost text-lg" placeholder="0" oninput="recalcAll()">
+            </div>
+            <div>
+                <label class="text-[10px] font-bold text-slate-400">×”×‘×¨××”</label>
+                <input type="number" id="inpRecup" class="input-ghost text-lg" placeholder="0" oninput="recalcAll()">
+            </div>
+            <div class="border-r border-slate-200 pr-2">
+                <label class="text-[10px] font-bold text-red-400">×”×•×¨×“×•×ª</label>
+                <input type="number" id="inpDed" class="input-ghost text-lg text-red-500" placeholder="110" value="110" oninput="recalcAll()">
+            </div>
+        </div>
+
+        <!-- RESULTS CARD -->
+        <div id="result-card" class="bg-white rounded-3xl shadow-xl overflow-hidden border border-slate-100 mt-4">
+            <div class="bg-slate-900 p-6 text-white text-center relative">
+                <!-- Dual Net Display -->
+                <div class="grid grid-cols-2 gap-4 mb-4 relative z-10">
+                    <div class="text-center p-2 rounded-xl bg-slate-800 border border-slate-700">
+                        <div class="text-[10px] text-slate-400 mb-1">× ×˜×• (×¨×’×™×œ)</div>
+                        <div class="text-xl font-bold text-slate-300 tabular-nums" id="resNetNoBenefit">0 â‚ª</div>
+                    </div>
+                    <div class="text-center p-2 rounded-xl bg-emerald-900/30 border border-emerald-500/30">
+                        <div class="text-[10px] text-emerald-300 mb-1">× ×˜×• (×¢× ×”×˜×‘×”)</div>
+                        <div class="text-2xl font-black text-emerald-400 tabular-nums" id="resFinalNet">0 â‚ª</div>
+                    </div>
+                </div>
+                
+                <div class="relative z-10 flex justify-center">
+                    <div class="bg-white/10 rounded-full px-4 py-1 backdrop-blur-sm border border-white/10 flex items-center gap-2 text-xs">
+                        <span class="text-slate-300">×”×¤×¨×© ×œ×›×™×¡:</span>
+                        <span class="font-bold text-emerald-300" id="resSavings">0 â‚ª</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="p-5 space-y-3 bg-white">
+                <div class="flex justify-between items-center border-b border-dashed border-slate-200 pb-3">
+                    <span class="text-sm font-bold text-slate-600">×‘×¨×•×˜×•</span>
+                    <span class="font-black text-lg text-slate-800" id="resGross">0 â‚ª</span>
+                </div>
+                <div class="grid grid-cols-2 gap-x-4 gap-y-2 text-xs">
+                    <div class="flex justify-between"><span>×¤× ×¡×™×” (7%)</span><span class="font-mono text-slate-700" id="resPens">0</span></div>
+                    <div class="flex justify-between"><span>×§×”"×© (2.5%)</span><span class="font-mono text-slate-700" id="resHish">0</span></div>
+                    <div class="flex justify-between"><span>×ž×¡ ×”×›× ×¡×”</span><span class="font-mono text-red-500" id="resTax">0</span></div>
+                    <div class="flex justify-between"><span>×‘×™×˜×•×— ×œ××•×ž×™</span><span class="font-mono text-red-500" id="resBL">0</span></div>
+                </div>
+            </div>
+             <div class="bg-slate-50 p-3 border-t border-slate-100 flex justify-between items-center px-5">
+                 <span class="text-[10px] font-bold text-slate-500">×›×•×œ×œ ×§×¨×Ÿ ×”×©×ª×œ×ž×•×ª?</span>
+                 <div class="relative inline-block w-8 align-middle select-none">
+                    <input type="checkbox" id="toggleHish" class="toggle-checkbox absolute block w-4 h-4 rounded-full bg-white border-4 appearance-none cursor-pointer" checked onchange="recalcAll()"/>
+                    <label for="toggleHish" class="toggle-label block overflow-hidden h-4 rounded-full bg-gray-300 cursor-pointer"></label>
+                </div>
+             </div>
+        </div>
+
+        <!-- API KEY MODAL (Hidden by default) -->
+        <div id="apiKeyModal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+            <div class="bg-white rounded-2xl p-5 w-full max-w-sm">
+                <h3 class="font-bold text-slate-800 mb-2">×”×’×“×¨×ª ×ž×¤×ª×— AI</h3>
+                <p class="text-xs text-slate-500 mb-3">×“×¨×•×© ×ž×¤×ª×— ×¨×§ ×œ×©××œ×•×ª ×›×œ×œ×™×•×ª/×—×•×§×™×•×ª. × ×™×ª×•×— ×‘×¡×™×¡×™ ×¢×•×‘×“ ×’× ×‘×œ×™ ×ž×¤×ª×—.</p>
+                <input type="password" id="apiKey" class="w-full border rounded p-2 text-sm mb-3" placeholder="×”×“×‘×§ ×›××Ÿ...">
+                <div class="flex gap-2">
+                    <button onclick="document.getElementById('apiKeyModal').classList.add('hidden')" class="flex-1 bg-slate-200 text-slate-700 rounded p-2 text-xs font-bold">×‘×™×˜×•×œ</button>
+                    <button onclick="saveKey()" class="flex-1 bg-indigo-600 text-white rounded p-2 text-xs font-bold">×©×ž×•×¨</button>
+                </div>
+            </div>
+        </div>
 
     </main>
 
     <script>
-        // Constants & Config
-        const BASE_RATE = 75;
-        const TRAVEL_PER_DAY = 35;
-        const TAX_BRACKETS = [ { limit: 7010, rate: 0.10 }, { limit: 10060, rate: 0.14 }, { limit: 16150, rate: 0.20 }, { limit: 22440, rate: 0.31 }, { limit: 46690, rate: 0.35 } ];
-        const CREDIT_POINT_VAL = 242;
-        const POINTS = 2.25;
-        const SETTLEMENT_RATE = 0.20;
-        const SETTLEMENT_CEILING = 21500;
-        const BL_LOW_LIMIT = 7522;
-        const BL_LOW_RATE = 0.035 + 0.031;
-        const BL_HIGH_RATE = 0.07 + 0.05;
+        const CONST = {
+            RATE: 75, TRAVEL: 35, PENSION: 0.07, HISHTALMUT_RATE: 0.025, CREDIT_PTS: 2.25 * 242,
+            SETTLEMENT_RATE: 0.20, SETTLEMENT_MAX: 21500,
+            TAX_BRACKETS: [{l: 7010,r:0.1},{l:10060,r:0.14},{l:16150,r:0.2},{l:22440,r:0.31},{l:46690,r:0.35},{l:999999,r:0.47}]
+        };
 
-        let currentMode = 'report';
+        let mode = 'dynamic'; 
+        let dynamicShifts = [];
+        let editingId = null;
+        
+        // Stats for Chat
+        let workStats = {
+            saturdays: 0,
+            fridays: 0,
+            longShifts: 0, // >16
+            nightShifts: 0,
+            totalShifts: 0,
+            avgHours: 0
+        };
 
-        // Elements
-        const els = {};
-        ['rep100','rep125','rep150','repSat','repTravel', 'wkHours','wkCount','friHours','friCount','satHours','satCount'].forEach(id => els[id] = document.getElementById(id));
-        const displays = {};
-        ['tdGrossStd','tdBLStd','tdPensionStd','tdHishtalmutStd','tdTaxStd','tdNetStd','tdNetStl','slipTotalNet','diffValue','totalGrossHeader'].forEach(id => displays[id] = document.getElementById(id));
-
-        // --- Core Logic ---
-        function switchTab(mode) {
-            currentMode = mode;
-            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-            document.getElementById('tab-' + mode).classList.add('active');
-            
-            document.querySelectorAll('nav button').forEach(el => {
-                el.className = "flex-1 min-w-[80px] py-2.5 text-sm font-bold rounded-xl text-center transition-all-300 text-slate-500 hover:text-indigo-600 relative z-10";
+        function setTab(newMode) {
+            ['report','dynamic','quick'].forEach(m => {
+                document.getElementById(`view-${m}`).classList.add('hidden');
+                document.getElementById(`btn-${m}`).className = "flex-1 min-w-[80px] py-2 text-sm font-bold rounded-xl transition-all text-slate-500 hover:text-indigo-600";
             });
-            const activeBtn = document.getElementById('btn-' + mode);
-            if(mode === 'ai') activeBtn.className = "flex-1 min-w-[80px] py-2.5 text-sm font-bold rounded-xl text-center transition-all-300 relative z-10 bg-gradient-to-r from-indigo-50 to-purple-50 text-purple-700 ring-1 ring-purple-200 flex items-center justify-center gap-1";
-            else activeBtn.className = "flex-1 min-w-[80px] py-2.5 text-sm font-bold rounded-xl text-center transition-all-300 relative z-10 bg-white shadow-sm text-indigo-600 ring-1 ring-black/5";
-            update();
+            mode = newMode;
+            document.getElementById(`view-${mode}`).classList.remove('hidden');
+            document.getElementById(`btn-${mode}`).className = "flex-1 min-w-[80px] py-2 text-sm font-bold rounded-xl transition-all text-indigo-600 bg-indigo-50 shadow-sm";
+            recalcAll();
         }
 
-        // --- API Key Management ---
-        function saveApiKey() {
-            const input = document.getElementById('userApiKeyInput');
-            const key = input.value.trim();
-            if (key) {
-                localStorage.setItem('gemini_api_key', key);
-                document.getElementById('keyStatusMsg').classList.remove('hidden');
-                setTimeout(() => document.getElementById('keyStatusMsg').classList.add('hidden'), 3000);
+        function recalcAll() {
+            if (mode === 'quick') calcQuick();
+            else calc();
+        }
+
+        function syncInput(slider, id) {
+            document.getElementById(id).value = slider.value;
+            calc();
+        }
+
+        // --- DYNAMIC SHIFTS LOGIC ---
+        function addOrUpdateShift() {
+            const h = parseFloat(document.getElementById('shiftHours').value);
+            if (!h || h <= 0) return;
+            const type = document.getElementById('shiftType').value;
+
+            if (editingId) {
+                const idx = dynamicShifts.findIndex(s => s.id === editingId);
+                if(idx > -1) {
+                    dynamicShifts[idx].hours = h;
+                    dynamicShifts[idx].type = type;
+                }
+                editingId = null;
+                document.getElementById('btnIcon').className = "ph-bold ph-plus text-lg";
+                document.getElementById('btnAddShift').classList.remove('bg-emerald-500');
+                document.getElementById('btnAddShift').classList.add('bg-indigo-600');
+            } else {
+                dynamicShifts.push({ id: Date.now(), type, hours: h });
+            }
+
+            document.getElementById('shiftHours').value = '';
+            renderShifts();
+        }
+
+        function editShift(id) {
+            const s = dynamicShifts.find(x => x.id === id);
+            if(!s) return;
+            document.getElementById('shiftHours').value = s.hours;
+            document.getElementById('shiftType').value = s.type;
+            editingId = id;
+            document.getElementById('btnIcon').className = "ph-bold ph-pencil-simple text-lg";
+            const btn = document.getElementById('btnAddShift');
+            btn.classList.remove('bg-indigo-600');
+            btn.classList.add('bg-emerald-500');
+        }
+
+        function removeShift(id) {
+            dynamicShifts = dynamicShifts.filter(s => s.id !== id);
+            if(editingId === id) {
+                editingId = null;
+                document.getElementById('shiftHours').value = '';
+                document.getElementById('btnIcon').className = "ph-bold ph-plus text-lg";
+                document.getElementById('btnAddShift').classList.remove('bg-emerald-500');
+                document.getElementById('btnAddShift').classList.add('bg-indigo-600');
+            }
+            renderShifts();
+        }
+
+        function clearShifts() {
+            dynamicShifts = [];
+            editingId = null;
+            document.getElementById('shiftHours').value = '';
+            renderShifts();
+        }
+
+        function renderShifts() {
+            const list = document.getElementById('shiftList');
+            list.innerHTML = '';
+            
+            if (dynamicShifts.length === 0) {
+                document.getElementById('emptyState').style.display = 'block';
+                document.getElementById('shiftCountLabel').innerText = '0 ×ž×©×ž×¨×•×ª';
+            } else {
+                document.getElementById('emptyState').style.display = 'none';
+                document.getElementById('shiftCountLabel').innerText = `${dynamicShifts.length} ×ž×©×ž×¨×•×ª`;
+                
+                dynamicShifts.forEach(s => {
+                    const isWk = s.type === 'wk';
+                    const icon = isWk ? 'ph-sun' : 'ph-moon-stars';
+                    const color = isWk ? 'text-indigo-600 bg-indigo-50' : 'text-purple-600 bg-purple-50';
+                    const label = isWk ? '×™×•× ×—×•×œ' : '×©×‘×ª/×—×’';
+                    
+                    list.innerHTML += `
+                        <div class="flex justify-between items-center bg-white p-2.5 rounded-xl border border-slate-100 shadow-sm">
+                            <div class="flex items-center gap-3">
+                                <div class="w-8 h-8 rounded-full ${color} flex items-center justify-center"><i class="ph-fill ${icon}"></i></div>
+                                <div><div class="text-xs font-bold text-slate-700">${label}</div><div class="text-[10px] text-slate-400 font-mono">${s.hours} ×©×¢×•×ª</div></div>
+                            </div>
+                            <div class="flex gap-1">
+                                <button onclick="editShift(${s.id})" class="p-1.5 text-indigo-400 hover:bg-indigo-50 rounded-lg"><i class="ph-bold ph-pencil-simple"></i></button>
+                                <button onclick="removeShift(${s.id})" class="p-1.5 text-red-400 hover:bg-red-50 rounded-lg"><i class="ph-bold ph-trash"></i></button>
+                            </div>
+                        </div>`;
+                });
+            }
+            processDynamicShifts();
+        }
+
+        function processDynamicShifts() {
+            let h100=0, h125=0, h150=0, h175=0, h200=0, travelDays=0;
+            
+            // Reset Stats
+            workStats = { saturdays: 0, fridays: 0, longShifts: 0, nightShifts: 0, totalShifts: 0, avgHours: 0 };
+            let totalHrs = 0;
+
+            dynamicShifts.forEach(s => {
+                travelDays++;
+                workStats.totalShifts++;
+                let d = s.hours;
+                totalHrs += d;
+                
+                if (d > 16) workStats.longShifts++;
+                
+                if(s.type === 'shabbat') {
+                    workStats.saturdays++;
+                    h150 += Math.min(d,8);
+                    h175 += Math.min(Math.max(d-8,0),2);
+                    h200 += Math.max(d-10,0);
+                } else {
+                    h100 += Math.min(d,8);
+                    h125 += Math.min(Math.max(d-8,0),2);
+                    h150 += Math.max(d-10,0);
+                }
+            });
+            
+            if(workStats.totalShifts > 0) workStats.avgHours = (totalHrs / workStats.totalShifts).toFixed(1);
+
+            if(mode === 'dynamic') {
+                document.getElementById('inp100').value = h100;
+                document.getElementById('inp125').value = h125;
+                document.getElementById('inp150').value = h150;
+                document.getElementById('inp175').value = h175;
+                document.getElementById('inp200').value = h200;
+                document.getElementById('inpTravel').value = travelDays * CONST.TRAVEL;
+                calc();
             }
         }
 
-        function getApiKey() {
-            // Priority: LocalStorage -> Embedded (if used locally)
-            return localStorage.getItem('gemini_api_key') || ""; 
+        // --- CALC LOGIC ---
+        function num(id) { const v = parseFloat(document.getElementById(id).value); return isNaN(v)?0:v; }
+        
+        function calc() {
+            const h100=num('inp100'), h125=num('inp125'), h150=num('inp150'), h175=num('inp175'), h200=num('inp200');
+            const grossShift = (h100 + h125*1.25 + h150*1.5 + h175*1.75 + h200*2) * CONST.RATE;
+            const gross = grossShift + num('inpTravel') + num('inpRecup');
+            
+            const pension = Math.round(grossShift * CONST.PENSION);
+            const hish = document.getElementById('toggleHish').checked ? Math.round(grossShift * CONST.HISHTALMUT_RATE) : 0;
+            
+            doUpdate(gross, pension, hish);
         }
 
-        // --- Gemini Integration ---
-        async function callGemini(promptText) {
-            const chatArea = document.getElementById('aiChatArea');
-            const key = getApiKey();
+        function calcQuick() {
+            const gross = num('quickGross');
+            const penBase = Math.max(0, gross - num('inpTravel'));
+            const pension = Math.round(penBase * CONST.PENSION);
+            const hish = document.getElementById('toggleHish').checked ? Math.round(penBase * CONST.HISHTALMUT_RATE) : 0;
+            doUpdate(gross, pension, hish);
+        }
 
-            if (!key) {
-                chatArea.innerHTML += `<div class="ai-message text-red-600 bg-red-50 border-red-200">
-                    <strong>שים לב:</strong> חסר מפתח API.<br>
-                    נא להזין מפתח בשדה למעלה כדי להשתמש ב-AI.
-                    <a href="https://aistudio.google.com/app/apikey" target="_blank" class="underline">השג מפתח כאן</a>.
-                </div>`;
+        function doUpdate(gross, pens, hish) {
+            let bl = (gross <= 7522) ? gross*0.035 : (7522*0.035 + (gross-7522)*0.12);
+            const taxable = Math.max(0, gross - pens - hish);
+            let taxRaw = 0, prev = 0;
+            for(let b of CONST.TAX_BRACKETS) {
+                if(taxable > prev) { taxRaw += (Math.min(taxable, b.l)-prev)*b.r; prev = b.l; }
+            }
+            const taxReg = Math.max(0, taxRaw - CONST.CREDIT_PTS);
+            const taxBen = Math.max(0, taxReg - (Math.min(gross, CONST.SETTLEMENT_MAX)*CONST.SETTLEMENT_RATE));
+            const fixed = num('inpDed');
+            
+            const netReg = gross - pens - hish - bl - taxReg - fixed;
+            const netBen = gross - pens - hish - bl - taxBen - fixed;
+
+            updateVal('headerNet', netBen);
+            updateVal('resFinalNet', netBen);
+            updateVal('resNetNoBenefit', netReg);
+            document.getElementById('resSavings').innerText = fmt(netBen - netReg);
+            document.getElementById('resGross').innerText = fmt(gross);
+            document.getElementById('resPens').innerText = '-'+fmt(pens);
+            document.getElementById('resHish').innerText = '-'+fmt(hish);
+            document.getElementById('resTax').innerText = '-'+fmt(taxBen);
+            document.getElementById('resBL').innerText = '-'+fmt(bl);
+        }
+
+        function updateVal(id, v) {
+            const el = document.getElementById(id);
+            if(!el) return;
+            el.innerText = fmt(v);
+        }
+        function fmt(n) { return (isNaN(n)?0:Math.floor(n)).toLocaleString('he-IL') + ' â‚ª'; }
+
+        // --- LOCAL AI LOGIC ---
+        function askLocal(type) {
+            const input = document.getElementById('embeddedAiInput');
+            input.value = type;
+            sendEmbeddedAI();
+        }
+
+        function getLocalResponse(q) {
+            q = q.toLowerCase();
+            
+            // Priority: Data Analysis
+            if (q.includes('×©×‘×ª') || q.includes('satur')) {
+                return `×¢×©×™×ª ×”×—×•×“×© ${workStats.saturdays} ×ž×©×ž×¨×•×ª ×©×‘×ª/×—×’.`;
+            }
+            if (q.includes('×©×™×©×™') || q.includes('fri')) {
+                return `×¢×©×™×ª ×”×—×•×“×© ${workStats.fridays} ×ž×©×ž×¨×•×ª ×‘×™×ž×™ ×©×™×©×™.`;
+            }
+            if (q.includes('16') || q.includes('××¨×•×›×•×ª')) {
+                return `×”×™×• ×œ×š ${workStats.longShifts} ×ž×©×ž×¨×•×ª ×ž×¢×œ 16 ×©×¢×•×ª. ×•×•××•!`;
+            }
+            if (q.includes('×œ×™×œ×•×ª') || q.includes('night')) {
+                return `×–×™×”×™×ª×™ ${workStats.nightShifts} ×ž×©×ž×¨×•×ª ×œ×™×œ×”.`;
+            }
+            if (q.includes('×ž×ž×•×¦×¢') || q.includes('avg')) {
+                return `×ž×ž×•×¦×¢ ×”×©×¢×•×ª ×œ×ž×©×ž×¨×ª ×©×œ×š ×”×•× ${workStats.avgHours} ×©×¢×•×ª.`;
+            }
+            
+            // General Info
+            const gross = document.getElementById('resGross').innerText;
+            const net = document.getElementById('resFinalNet').innerText;
+            if (q.includes('×‘×¨×•×˜×•')) return `×”×‘×¨×•×˜×• ×”× ×•×›×—×™ ×©×œ×š ×”×•× ${gross}.`;
+            if (q.includes('× ×˜×•')) return `×”× ×˜×• ×”×¦×¤×•×™ (×¢× ×”×˜×‘×ª ×ž×¡) ×”×•× ${net}.`;
+            
+            return "×× ×™ ×™×•×“×¢ ×œ×¢× ×•×ª ×¢×œ: ×›×ž×” ×©×‘×ª×•×ª, ×›×ž×” ×©×™×©×™, ×ž×©×ž×¨×•×ª ×ž×¢×œ 16 ×©×¢×•×ª, ×•×›×ž×” ×œ×™×œ×•×ª.";
+        }
+
+        async function sendEmbeddedAI() {
+            const input = document.getElementById('embeddedAiInput');
+            const q = input.value;
+            if(!q) return;
+            
+            const log = document.getElementById('embeddedChatLog');
+            log.innerHTML += `<div class="bg-indigo-100 p-2 rounded-lg mb-1 text-indigo-900 w-fit mr-auto rounded-tr-none text-right">${q}</div>`;
+            input.value = '';
+            log.scrollTop = log.scrollHeight;
+
+            const key = localStorage.getItem('geminiKey');
+            
+            // Try Local First (Immediate)
+            if (!key || ['×©×‘×ª','×©×™×©×™','16','×œ×™×œ×•×ª','×ž×ž×•×¦×¢'].some(k => q.includes(k))) {
+                const localReply = getLocalResponse(q);
+                setTimeout(() => {
+                    log.innerHTML += `<div class="bg-white p-2 rounded-lg mb-1 border border-indigo-50 shadow-sm text-slate-700 rounded-tl-none">${localReply}</div>`;
+                    log.scrollTop = log.scrollHeight;
+                }, 400);
                 return;
             }
 
-            const loadingId = 'loading-' + Date.now();
-            chatArea.innerHTML += `<div id="${loadingId}" class="ai-message w-fit"><div class="ai-loading"><span></span><span></span><span></span></div></div>`;
-            chatArea.scrollTop = chatArea.scrollHeight;
-
+            // Use API if Key exists
             try {
-                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${key}`, {
+                const context = `Salary Data: Gross ${document.getElementById('resGross').innerText}, Net ${document.getElementById('resFinalNet').innerText}.`;
+                const resp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${key}`, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ contents: [{ parts: [{ text: promptText }] }] })
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ contents: [{ parts: [{ text: context + " User question: " + q + ". Reply short in Hebrew." }] }] })
                 });
+                const data = await resp.json();
+                const text = data.candidates?.[0]?.content?.parts?.[0]?.text || "×©×’×™××”";
                 
-                const data = await response.json();
-                
-                if (data.error) throw new Error(data.error.message);
-
-                const aiText = data.candidates?.[0]?.content?.parts?.[0]?.text || "שגיאה בקבלת תשובה.";
-                document.getElementById(loadingId).remove();
-                
-                // Parse Markdown safely
-                const formatted = marked.parse(aiText);
-                chatArea.innerHTML += `<div class="ai-message">${formatted}</div>`;
-                chatArea.scrollTop = chatArea.scrollHeight;
-
-            } catch (error) {
-                document.getElementById(loadingId).remove();
-                chatArea.innerHTML += `<div class="ai-message text-red-600">שגיאה: ${error.message}</div>`;
+                log.innerHTML += `<div class="bg-white p-2 rounded-lg mb-1 border border-indigo-50 shadow-sm text-slate-700 rounded-tl-none">${marked.parse(text)}</div>`;
+                log.scrollTop = log.scrollHeight;
+            } catch(e) {
+                log.innerHTML += `<div class="text-red-500 text-[10px]">×©×’×™××” ×‘×ª×§×©×•×¨×ª</div>`;
             }
         }
 
-        function getSalaryData() {
-            const gross = calculateGross();
-            const pens = Math.round(gross * 0.07);
-            const hish = Math.round(gross * 0.025);
-            const bl = Math.round(calculateBL(gross));
-            const taxStd = Math.round(calculateTax(gross, pens));
-            const taxStl = Math.round(Math.max(0, taxStd - (Math.min(gross, SETTLEMENT_CEILING) * SETTLEMENT_RATE)));
-            return { gross, pens, hish, bl, taxStd, taxStl, netStd: gross - pens - hish - bl - taxStd, netStl: gross - pens - hish - bl - taxStl };
+        function saveKey() {
+            const k = document.getElementById('apiKey').value;
+            if(k) { localStorage.setItem('geminiKey', k); document.getElementById('apiKeyModal').classList.add('hidden'); }
         }
 
-        function generateSalaryAnalysis() {
-            const d = getSalaryData();
-            const prompt = `Act as an Israeli accountant. Data: Gross ${d.gross}, Net(City) ${d.netStl}, Tax Saved ${d.taxStd - d.taxStl}. 
-            Task: Provide a short financial summary in Hebrew. Highlight the specific benefit of "Yishuv Mezake".
-            Calculate value of +1 Saturday shift (approx 16h @ 200%). Brief & encouraging tone.`;
-            callGemini(prompt);
-        }
-
-        function askGemini() {
-            const input = document.getElementById('aiUserInput');
-            const q = input.value.trim();
-            if (!q) return;
-            document.getElementById('aiChatArea').innerHTML += `<div class="user-message">${q}</div>`;
-            input.value = '';
-            const d = getSalaryData();
-            callGemini(`Context: Israeli salary data. Gross: ${d.gross}, Net: ${d.netStl}. User Q: "${q}". Answer in Hebrew.`);
-        }
-
-        // --- Calculator Logic ---
-        function calculateGross() {
-            if (currentMode === 'report' || currentMode === 'results' || currentMode === 'ai') {
-                const h100 = parseFloat(els.rep100.value)||0, h125 = parseFloat(els.rep125.value)||0, h150 = parseFloat(els.rep150.value)||0, hSat = parseFloat(els.repSat.value)||0, tr = parseFloat(els.repTravel.value)||0;
-                return (h100*BASE_RATE) + (h125*BASE_RATE*1.25) + (h150*BASE_RATE*1.5) + (hSat*BASE_RATE*2.0) + tr;
-            } else {
-                return (calcShift(els.wkHours.value,'w')*els.wkCount.value) + (calcShift(els.friHours.value,'f')*els.friCount.value) + (calcShift(els.satHours.value,'s')*els.satCount.value);
-            }
-        }
-        function calcShift(h, t) {
-            h = parseFloat(h); let p=0, r=Math.min(h,8), o1=Math.max(0,Math.min(h-8,2)), o2=Math.max(0,h-10);
-            if(t==='s') p=(r*1.5*BASE_RATE)+(o1*1.75*BASE_RATE)+(o2*2*BASE_RATE);
-            else if(t==='f') p = (h<=10) ? (r*BASE_RATE)+(o1*1.25*BASE_RATE) : (8*BASE_RATE)+(2*1.25*BASE_RATE)+(o2*1.75*BASE_RATE);
-            else p=(r*BASE_RATE)+(o1*1.25*BASE_RATE)+(o2*1.5*BASE_RATE);
-            return Math.floor(p+TRAVEL_PER_DAY);
-        }
-        function calculateBL(s) { return s<=BL_LOW_LIMIT ? s*BL_LOW_RATE : (BL_LOW_LIMIT*BL_LOW_RATE)+((s-BL_LOW_LIMIT)*BL_HIGH_RATE); }
-        function calculateTax(s, p) { 
-            let t=0, prev=0; 
-            for(let b of TAX_BRACKETS) { if(s>prev) { t+=(Math.min(s,b.limit)-prev)*b.rate; prev=b.limit; } }
-            if(s>46690) t+=(s-46690)*0.47;
-            return Math.max(0, t-(POINTS*CREDIT_POINT_VAL)-(p*0.35));
-        }
-        function fmt(n) { return n.toLocaleString('he-IL') + ' ₪'; }
-        function update() {
-            ['Wk','Fri','Sat'].forEach(d => { document.getElementById(`disp${d}Hours`).textContent=els[d.toLowerCase()+'Hours'].value; document.getElementById(`disp${d}Count`).textContent=els[d.toLowerCase()+'Count'].value; });
-            const g = calculateGross(), p = Math.round(g*0.07), h = Math.round(g*0.025), b = Math.round(calculateBL(g));
-            const tStd = Math.round(calculateTax(g, p)), tStl = Math.round(Math.max(0, tStd - (Math.min(g, SETTLEMENT_CEILING)*SETTLEMENT_RATE)));
-            const netStd = g-p-h-b-tStd, netStl = g-p-h-b-tStl;
+        // Excel
+        document.getElementById('fileInput').addEventListener('change', function(e) {
+            const f = e.target.files[0]; if(!f) return;
+            document.getElementById('loader').style.opacity = '1';
+            document.getElementById('excelError').classList.add('hidden');
             
-            displays.totalGrossHeader.textContent=fmt(g); displays.tdGrossStd.textContent=fmt(g);
-            displays.tdBLStd.textContent='-'+fmt(b); displays.tdPensionStd.textContent='-'+fmt(p);
-            displays.tdHishtalmutStd.textContent='-'+fmt(h); displays.tdTaxStd.textContent='-'+fmt(tStd);
-            displays.tdNetStd.textContent=fmt(netStd); displays.tdNetStl.textContent=fmt(netStl);
-            displays.slipTotalNet.textContent=fmt(netStl); displays.diffValue.textContent=fmt(netStl-netStd);
-        }
-        function clearReport() { ['rep100','rep125','rep150','repSat','repTravel'].forEach(k=>els[k].value=''); document.getElementById('fileInput').value=''; update(); }
-        
-        // Excel Upload
-        const dz = document.getElementById('dropZone'), fi = document.getElementById('fileInput');
-        fi.addEventListener('change', e=>hf(e.target.files[0]));
-        dz.addEventListener('dragover', e=>{e.preventDefault(); dz.classList.add('bg-indigo-100');});
-        dz.addEventListener('dragleave', e=>{e.preventDefault(); dz.classList.remove('bg-indigo-100');});
-        dz.addEventListener('drop', e=>{e.preventDefault(); dz.classList.remove('bg-indigo-100'); hf(e.dataTransfer.files[0]);});
-        function hf(f) {
-            if(!f) return;
-            document.getElementById('loadingIndicator').style.opacity='1';
-            const r = new FileReader();
-            r.onload = e => {
-                const wb = XLSX.read(new Uint8Array(e.target.result), {type:'array'});
-                const rows = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], {header:1});
-                
-                let s100=0,s125=0,s150=0,sSat=0,cnt=0,cD=-1,cI=-1,cO=-1;
-                rows.some(r=>{ const s=r.join(' ').toLowerCase(); if(s.includes('תאריך')&&s.includes('כניסה')){ r.forEach((c,i)=>{ if(typeof c!=='string')return; if(c.includes('תאריך'))cD=i; if(c.includes('כניסה')&&!c.includes('ת.'))cI=i; if(c.includes('יציאה')&&!c.includes('ת.'))cO=i; }); return true; } });
-                
-                if(cD<0) { alert('קובץ לא תקין'); document.getElementById('loadingIndicator').style.opacity='0'; return; }
+            if (typeof XLSX === 'undefined') {
+                alert('×¨×›×™×‘ ××§×¡×œ ×œ× × ×˜×¢×Ÿ.');
+                document.getElementById('loader').style.opacity = '0';
+                return;
+            }
 
-                rows.forEach((r,i)=>{
-                    if(i<1||!r[cD]||!r[cI]||!r[cO]) return;
-                    let d=r[cD], jd; 
-                    if(typeof d==='number') jd=new Date(Math.round((d-25569)*864e5));
-                    else { const p=d.split('/'); if(p.length===3) jd=new Date(`${p[2]}-${p[1]}-${p[0]}`); }
-                    if(!jd||isNaN(jd)) return;
+            const r = new FileReader();
+            r.onload = (evt) => {
+                try {
+                    const data = new Uint8Array(evt.target.result);
+                    const wb = XLSX.read(data, {type:'array'});
+                    const rows = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], {header:1});
                     
-                    const pt=t=>{ if(typeof t!=='string')return null; const p=t.split(':'); return parseInt(p[0])+parseInt(p[1])/60; };
-                    const t1=pt(r[cI]), t2=pt(r[cO]);
-                    if(t1===null||t2===null) return;
+                    let h100=0, h125=0, h150=0, h175=0, h200=0, travelDays=0;
                     
-                    let dur=t2-t1; if(dur<0) dur+=24; if(dur<=0) return;
-                    cnt++;
-                    const day=jd.getDay();
-                    if(day===6) sSat+=dur;
-                    else if(day===5) { if(dur<=10){ s100+=Math.min(dur,8); s125+=Math.max(0,dur-8); } else { s100+=8; s125+=2; sSat+=(dur-10); } }
-                    else { s100+=Math.min(dur,8); s125+=Math.max(0,Math.min(dur-8,2)); s150+=Math.max(0,dur-10); }
-                });
-                
-                els.rep100.value=s100.toFixed(2); els.rep125.value=s125.toFixed(2); els.rep150.value=s150.toFixed(2);
-                els.repSat.value=sSat.toFixed(2); els.repTravel.value=(cnt*TRAVEL_PER_DAY).toFixed(2);
-                
-                document.getElementById('loadingIndicator').style.opacity='0';
-                document.getElementById('fileSuccessMsg').style.opacity='1';
-                setTimeout(()=>document.getElementById('fileSuccessMsg').style.opacity='0',3000);
-                update();
+                    // Stats Reset
+                    workStats = { saturdays: 0, fridays: 0, longShifts: 0, nightShifts: 0, totalShifts: 0, avgHours: 0 };
+                    let totalHoursSum = 0;
+
+                    let cDate=-1, cIn=-1, cOut=-1;
+                    
+                    rows.forEach((r, i) => {
+                        const s = (r.join(' ')||'').toLowerCase();
+                        if(s.includes('×ª××¨×™×š') && s.includes('×›× ×™×¡×”')) {
+                            r.forEach((c, idx) => {
+                                if(typeof c !== 'string') return;
+                                if(c.includes('×ª××¨×™×š')) cDate=idx;
+                                if(c.includes('×›× ×™×¡×”') && !c.includes('×ª.')) cIn=idx;
+                                if(c.includes('×™×¦×™××”') && !c.includes('×ª.')) cOut=idx;
+                            });
+                        }
+                    });
+
+                    if(cDate > -1) {
+                        rows.forEach((r, i) => {
+                            if(i<1 || !r[cDate] || !r[cIn] || !r[cOut]) return;
+                            let tIn = parseT(r[cIn]), tOut = parseT(r[cOut]);
+                            if(tIn===null || tOut===null) return;
+                            let dur = tOut - tIn; if(dur<0) dur+=24; if(dur<=0) return;
+                            
+                            let dObj = null;
+                            if(typeof r[cDate]==='number') dObj = new Date(Math.round((r[cDate]-25569)*864e5));
+                            else { let p=r[cDate].split('/'); if(p.length===3) dObj = new Date(`${p[2]}-${p[1]}-${p[0]}`); }
+                            
+                            if(dObj) {
+                                travelDays++;
+                                workStats.totalShifts++;
+                                totalHoursSum += dur;
+                                if(dur > 16) workStats.longShifts++;
+                                
+                                // Night Shift Logic: Starts after 20:00 OR ends next day (tOut < tIn)
+                                if ((tIn * 24 >= 20) || (tOut < tIn)) workStats.nightShifts++;
+
+                                const day = dObj.getDay();
+                                const isFriEve = (day===5 && (tIn*24)>=15); // Friday after 15:00
+                                
+                                if (day === 5) workStats.fridays++;
+                                if (day === 6) workStats.saturdays++;
+
+                                if(day===6 || isFriEve) { 
+                                    h150 += Math.min(dur, 8);
+                                    h175 += Math.min(Math.max(dur-8,0), 2);
+                                    h200 += Math.max(dur-10,0);
+                                } else {
+                                    h100 += Math.min(dur, 8);
+                                    h125 += Math.min(Math.max(dur-8,0), 2);
+                                    h150 += Math.max(dur-10,0);
+                                }
+                            }
+                        });
+                        
+                        if (workStats.totalShifts > 0) workStats.avgHours = (totalHoursSum / workStats.totalShifts).toFixed(1);
+
+                        document.getElementById('inp100').value = h100.toFixed(2);
+                        document.getElementById('inp125').value = h125.toFixed(2);
+                        document.getElementById('inp150').value = h150.toFixed(2);
+                        document.getElementById('inp175').value = h175.toFixed(2);
+                        document.getElementById('inp200').value = h200.toFixed(2);
+                        document.getElementById('inpTravel').value = travelDays * CONST.TRAVEL;
+                        
+                        setTab('report');
+                        calc();
+                    } else { throw new Error('Cols missing'); }
+                } catch(e) { 
+                    console.error(e);
+                    document.getElementById('excelError').classList.remove('hidden');
+                }
+                document.getElementById('loader').style.opacity = '0';
             };
             r.readAsArrayBuffer(f);
+        });
+
+        function parseT(t) {
+            if(typeof t==='number') return t*24;
+            if(typeof t==='string') { let p=t.split(':'); if(p.length>=2) return parseInt(p[0])+parseInt(p[1])/60; }
+            return null;
         }
 
-        // Check for saved key on load
-        if(localStorage.getItem('gemini_api_key')) {
-            document.getElementById('userApiKeyInput').value = localStorage.getItem('gemini_api_key');
+        function clearInputs() {
+            ['inp100','inp125','inp150','inp175','inp200','inpTravel','inpRecup','inpDed'].forEach(id => {
+                const el = document.getElementById(id);
+                el.value = (id==='inpDed')?'110':'';
+            });
+            recalcAll();
         }
 
-        Object.values(els).forEach(el => el.addEventListener('input', update));
-        update();
+        // Init
+        setTab('dynamic'); 
+        if(localStorage.getItem('geminiKey')) document.getElementById('apiKeyModal').classList.add('hidden');
     </script>
 </body>
 </html>
