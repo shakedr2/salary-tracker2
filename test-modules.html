@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Module Test</title>
+</head>
+<body>
+    <h1>Testing ES6 Modules</h1>
+    <div id="results"></div>
+    <script type="module">
+        const results = document.getElementById('results');
+        
+        try {
+            // Test imports
+            const config = await import('./js/config.js');
+            const utils = await import('./js/utils.js');
+            const StateManager = await import('./js/state-manager.js');
+            const SalaryCalculator = await import('./js/salary-calculator.js');
+            
+            results.innerHTML = `
+                <p>✅ config.js loaded - APP_CONFIG: ${config.APP_CONFIG.name}</p>
+                <p>✅ utils.js loaded - formatCurrency: ${typeof utils.formatCurrency}</p>
+                <p>✅ state-manager.js loaded - StateManager: ${typeof StateManager.default}</p>
+                <p>✅ salary-calculator.js loaded - SalaryCalculator: ${typeof SalaryCalculator.default}</p>
+                <hr>
+                <h2>Test Calculation:</h2>
+                <p>Gross Salary: ₪15,000</p>
+            `;
+            
+            const result = SalaryCalculator.default.grossToNet(15000);
+            results.innerHTML += `
+                <p>Net Salary: ${utils.formatCurrency(result.netSalary)}</p>
+                <p>Income Tax: ${utils.formatCurrency(result.deductions.incomeTax)}</p>
+                <p>Effective Tax Rate: ${utils.formatNumber(result.effectiveTaxRate, 1)}%</p>
+            `;
+        } catch (error) {
+            results.innerHTML = `<p style="color: red;">❌ Error: ${error.message}</p>`;
+            console.error(error);
+        }
+    </script>
+</body>
+</html>
